@@ -9,3 +9,14 @@ npm init -y
 npm install express mongoose cors
 
 ```
+
+step2: Build server.js
+
+step3:
+
+```
+npx create-react-app frontend
+cd frontend
+npm install axios
+
+```
