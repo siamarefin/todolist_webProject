@@ -1,31 +1,51 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 import TodoList from './components/TodoList.jsx';
+import { fetchTodos, addTodoAPI, updateTodoAPI, deleteTodoAPI } from './utils/api';
+import {reorderTodosAPI} from './utils/api'; // Import reorder function
+
+
 
 function App() {
     const [todos, setTodos] = useState([]);
     const [task, setTask] = useState('');
 
-    const addTodo = () => {
-        if(!task.trim()) return; // prevent adding empty tasks
-        setTodos([...todos, { task, date: new Date().toLocaleString(), done: false }]);
+    useEffect(() => {
+        fetchTodos().then(setTodos);
+    }, []);
+    
+    const handleReorder = async (newTodos) => {
+        setTodos(newTodos);
+        await reorderTodosAPI(newTodos.map(todo => todo._id));
+    }
+
+    const addTodo = async () => {
+        if(!task.trim()) return;
+        const newTodo = { task, date: new Date().toLocaleString(), done: false };
+        const saved = await addTodoAPI(newTodo);
+        setTodos([...todos, saved]);
         setTask('');
     };
 
-    const toggleDone = (index) => {
-        const updated = [...todos];
-        updated [index].done = !updated[index].done;
-        setTodos(updated);
+    const toggleDone = async (index) => {
+        const todo = todos[index];
+        const updated = { ...todo, done: !todo.done };
+        const saved = await updateTodoAPI(todo._id, updated);
+        const updatedTodos = [...todos];
+        updatedTodos[index] = saved;
+        setTodos(updatedTodos);
     };
 
-    const deleteTodo = (index)  => {
+    const deleteTodo = async (index) => {
+        const todo = todos[index];
+        await deleteTodoAPI(todo._id);
         const updated = [...todos];
         updated.splice(index, 1);
         setTodos(updated);
     };
+
     return (
         <div className="App" >
-            {/* <h2>Todo List </h2> */}
             <div style={{ display: 'flex', marginBottom: 16 }}>
                 <input
                     value={task}
@@ -37,20 +57,16 @@ function App() {
                 <button onClick={addTodo} style={{ padding: '8px 16px', borderRadius: 4, background: '#007bff', color: '#fff', border: 'none' }}>
                     Add Task
                 </button>
-
             </div>
-
             <TodoList
                 todos={todos}
                 onToggleDone={toggleDone}
                 onDelete={deleteTodo}
                 setTodos={setTodos}
-                />
-
-
+                onReorder={handleReorder} // Pass reorder handler
+            />
         </div>
     );
-
 }
 
-export default App;     
+export default App;

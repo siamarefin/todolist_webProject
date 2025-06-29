@@ -1,5 +1,6 @@
 // dragAndDrop.jsx
 import { useState } from 'react';
+import { updateTodoAPI } from '../utils/api';
 
 export function useDragAndDrop(todos, setTodos) {
   const [draggedIndex, setDraggedIndex] = useState(null);
@@ -12,7 +13,7 @@ export function useDragAndDrop(todos, setTodos) {
     e.preventDefault();
   };
 
-  const handleDrop = (e, index) => {
+  const handleDrop = async (e, index) => {
     e.preventDefault();
     if (draggedIndex === null || draggedIndex === index) return;
     const updatedTodos = [...todos];
@@ -20,6 +21,11 @@ export function useDragAndDrop(todos, setTodos) {
     updatedTodos.splice(index, 0, removed);
     setTodos(updatedTodos);
     setDraggedIndex(null);
+    // Update order in DB after drag and drop
+    for (let i = 0; i < updatedTodos.length; i++) {
+      const todo = updatedTodos[i];
+      await updateTodoAPI(todo._id, { ...todo, order: i });
+    }
   };
 
   const handleDragEnd = () => {
