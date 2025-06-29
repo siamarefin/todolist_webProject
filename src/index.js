@@ -18,3 +18,9 @@ addBtn.addEventListener('click', ()=> {
         todoInput.value = ''; // clear the input field
     }
 });
+
+todoInput.addEventListener('keydown', (event) => {
+    if(event.key === 'Enter') {
+        addBtn.click();
+    }
+})
